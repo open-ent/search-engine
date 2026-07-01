@@ -148,14 +148,6 @@ public class SearchEngineController extends BaseController {
 					final Boolean[] treatyIsSoLong = new Boolean[]{Boolean.FALSE};
 					//Check is a completed result
 					final Set<Boolean> isCompletedResult = new HashSet<Boolean>();
-					//Pending vert.x 3 with TimeoutHandler
-					final long timerID = vertx.setTimer(SearchEngineController.this.maxSecTimeAllowed * 1000, new Handler<Long>() {
-						@Override
-						public void handle(Long aLong) {
-							treatyIsSoLong[0] = true;
-						}
-					});
-
 					vertx.sharedData().getAsyncMap(SearchingHandler.class.getName())
             .flatMap(AsyncMap::keys)
             .onSuccess(appRegisteredUntreated -> {
@@ -163,6 +155,42 @@ public class SearchEngineController extends BaseController {
               final String address = "search." + searchId;
 
               final MessageConsumer<JsonObject> messageConsumer = eb.localConsumer(address);
+              final Boolean[] rendered = new Boolean[]{Boolean.FALSE};
+              final long[] timerIDHolder = new long[1];
+
+              // Rendu final idempotent : déclenché soit quand toutes les sources ont répondu,
+              // soit à l'expiration du timer (filet de sécurité si une source ne rappelle jamais
+              // son handler). Garantit un vrai timeout au lieu d'un « Chargement… » infini
+              // (cf. anomalie 36 searchengine #1/#2).
+              final Handler<Boolean> finalizeSearch = new Handler<Boolean>() {
+                @Override
+                public void handle(Boolean hasPartialResult) {
+                  if (rendered[0]) return;
+                  rendered[0] = true;
+                  vertx.cancelTimer(timerIDHolder[0]);
+                  messageConsumer.unregister();
+                  if (results.size() == 0 && currentPage.equals(0)) {
+                    //fixme can't use 404 because reverse proxy converts this error to html
+                    badRequest(request, "search.engine.empty");
+                  } else {
+                    renderJson(request, new JsonObject().put("status", hasPartialResult)
+                      .put("hasMoreResult", isCompletedResult.contains(false)).put("results", results));
+                  }
+                  if (log.isDebugEnabled()) {
+                    log.debug("Search engine unregister handle : " + searchId);
+                  }
+                }
+              };
+
+              //Pending vert.x 3 with TimeoutHandler
+              timerIDHolder[0] = vertx.setTimer(SearchEngineController.this.maxSecTimeAllowed * 1000, new Handler<Long>() {
+                @Override
+                public void handle(Long aLong) {
+                  treatyIsSoLong[0] = true;
+                  log.warn("search engine performed a partial search : max time exceeded, some sources did not answer");
+                  finalizeSearch.handle(true);
+                }
+              });
 
               final Handler<Message<JsonObject>> searchHandler = new Handler<Message<JsonObject>>() {
                 @Override
@@ -199,26 +227,9 @@ public class SearchEngineController extends BaseController {
                   }
 
                   if (appRegisteredUntreated.isEmpty() || treatyIsSoLong[0]) {
-                    final Boolean hasPartialResult;
-                    if (treatyIsSoLong[0] && !appRegisteredUntreated.isEmpty()) {
-                      hasPartialResult = true;
-                      log.warn("search engine performed a partial search for the term configuration was exceeded");
-                    } else {
-                      vertx.cancelTimer(timerID);
-                      hasPartialResult = false;
-                    }
-
-                    if (results.size() == 0 && currentPage.equals(0)) {
-                      //fixme can't use 404 because reverse proxy converts this error to html
-                      badRequest(request, "search.engine.empty");
-                    } else {
-                      renderJson(request, new JsonObject().put("status", hasPartialResult)
-                        .put("hasMoreResult", isCompletedResult.contains(false)).put("results", results));
-                    }
-                    messageConsumer.unregister();
-                    if (log.isDebugEnabled()) {
-                      log.debug("Search engine unregister handle : " + searchId);
-                    }
+                    // Rendu délégué au handler idempotent (partagé avec le timer de timeout).
+                    final Boolean hasPartialResult = treatyIsSoLong[0] && !appRegisteredUntreated.isEmpty();
+                    finalizeSearch.handle(hasPartialResult);
                   }
                 }
               };

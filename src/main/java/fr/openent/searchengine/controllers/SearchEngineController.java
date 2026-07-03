@@ -55,6 +55,8 @@ public class SearchEngineController extends BaseController {
 	private Integer maxSecTimeAllowed;
 	private Integer pagingSizePerCollection;
 	private Integer searchWordMinSize;
+	/** IHM par défaut servie sur GET "" : "react" (nouvelle) ou "angular" (ancienne). Piloté par la conf `frontend-ui`. */
+	private String frontendUi;
 	private static final I18n i18n = I18n.getInstance();
 	private static final String[] RESULT_COLUMNS_HEADER = new String[] {"title", "description", "modified", "ownerDisplayName", "ownerId", "url"};
 
@@ -69,17 +71,26 @@ public class SearchEngineController extends BaseController {
 	 * Creates a new controller.
 	 */
 	public SearchEngineController(final Integer maxSecTimeAllowed, final Integer pagingSizePerCollection,
-								  final Integer searchWordMinSize) {
+								  final Integer searchWordMinSize, final String frontendUi) {
 		this.maxSecTimeAllowed = maxSecTimeAllowed;
 		this.pagingSizePerCollection = pagingSizePerCollection;
 		this.searchWordMinSize = searchWordMinSize;
+		this.frontendUi = ("angular".equals(frontendUi)) ? "angular" : "react";
 	}
 
 	@Get("")
 	@ApiDoc("Allows to display the main view")
 	@SecuredAction("searchengine.auth")
 	public void view(HttpServerRequest request) {
-		renderView(request);
+		// Choix de l'IHM (CCTP 51C — migration React) :
+		//  - défaut piloté par la conf `frontend-ui` (react|angular) ;
+		//  - override par requête `?ui=react|angular` (test/prévisualisation).
+		// La nouvelle IHM React est servie par `searchengine.html`, l'ancienne AngularJS
+		// (préservée) par `searchengine-angular.html`.
+		final String uiParam = request.getParam("ui");
+		final String ui = ("react".equals(uiParam) || "angular".equals(uiParam)) ? uiParam : frontendUi;
+		final String view = "angular".equals(ui) ? "searchengine-angular.html" : "searchengine.html";
+		renderView(request, new JsonObject(), view, null);
 
 		/// Create event "access to application Search Engine" and store it, for module "statistics"
 		eventStore.createAndStoreEvent(SearchEngineEvent.ACCESS.name(), request);

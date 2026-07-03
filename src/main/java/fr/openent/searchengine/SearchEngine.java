@@ -31,7 +31,8 @@ public class SearchEngine extends BaseServer {
 		super.start(promise);
     promise.future().map(e ->
       addController(new SearchEngineController(config.getInteger("max-sec-time-allowed", 4),
-        config.getInteger("paging-size-per-collection", 10), config.getInteger("search-word-min-size", 4)))
+        config.getInteger("paging-size-per-collection", 10), config.getInteger("search-word-min-size", 4),
+        config.getString("frontend-ui", "react")))
     )
     .onSuccess(e -> startPromise.complete())
     .onFailure(startPromise::fail);

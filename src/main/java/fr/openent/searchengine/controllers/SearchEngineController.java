@@ -55,7 +55,7 @@ public class SearchEngineController extends BaseController {
 	private Integer maxSecTimeAllowed;
 	private Integer pagingSizePerCollection;
 	private Integer searchWordMinSize;
-	/** IHM par défaut servie sur GET "" : "react" (nouvelle) ou "angular" (ancienne). Piloté par la conf `frontend-ui`. */
+	/** IHM par défaut servie sur GET "" : "react" (nouvelle) ou "angular" (ancienne). Pilotée par la conf `frontend-ui` (alimentée par FRONTEND_UI_DEFAULT). */
 	private String frontendUi;
 	private static final I18n i18n = I18n.getInstance();
 	private static final String[] RESULT_COLUMNS_HEADER = new String[] {"title", "description", "modified", "ownerDisplayName", "ownerId", "url"};

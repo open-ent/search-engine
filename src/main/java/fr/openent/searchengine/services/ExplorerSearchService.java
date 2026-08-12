@@ -85,7 +85,16 @@ public class ExplorerSearchService {
     public Future<JsonArray> search(final UserInfos user, final JsonArray words, final int page) {
         if (!isEnabled()) return Future.succeededFuture(new JsonArray());
 
-        final String terms = words.stream().map(String::valueOf).collect(Collectors.joining(" "));
+        // Les accents sont retirés de la requête : l'analyseur des index indexe à la
+        // fois la forme repliée (« college ») et l'originale (« collège »). Sur une
+        // recherche par préfixe, « collè » produit deux jetons — « colle » exigé comme
+        // mot entier, absent de l'index, et « collè » en préfixe — et ne remonte rien.
+        // La forme sans accent, elle, correspond au jeton replié.
+        final String terms = words.stream()
+            .map(String::valueOf)
+            .map(ExplorerSearchService::stripAccents)
+            .filter(w -> !w.isEmpty())
+            .collect(Collectors.joining(" "));
         if (terms.trim().isEmpty()) return Future.succeededFuture(new JsonArray());
 
         final JsonObject payload = new JsonObject()
@@ -98,6 +107,10 @@ public class ExplorerSearchService {
             .put("query", new JsonObject().put("bool", new JsonObject()
                 .put("must", new JsonArray().add(new JsonObject().put("multi_match", new JsonObject()
                     .put("query", terms)
+                    // bool_prefix : les mots complets doivent tous être présents et
+                    // le dernier est traité comme un préfixe, pour que « mathé »
+                    // trouve « mathématiques » comme l'attend l'utilisateur.
+                    .put("type", "bool_prefix")
                     // `name` est mappé en keyword (recherche exacte) : la recherche
                     // plein texte doit viser `contentAll`, le champ analysé qui reçoit
                     // name et creatorName via copy_to, ainsi que `contentHtml`.
@@ -115,6 +128,13 @@ public class ExplorerSearchService {
                 log.error("[SearchEngine] Explorer/OpenSearch search failed", th);
                 return new JsonArray();
             });
+    }
+
+    /** Retire les accents ; l'index stocke la forme repliée à côté de l'originale. */
+    private static String stripAccents(final String value) {
+        if (value == null) return "";
+        return java.text.Normalizer.normalize(value.trim(), java.text.Normalizer.Form.NFD)
+            .replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
     }
 
     /** Clauses de visibilité : créateur, partage nominatif, partage à un groupe. */

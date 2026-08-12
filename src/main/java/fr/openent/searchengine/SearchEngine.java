@@ -19,6 +19,7 @@
 
 package fr.openent.searchengine;
 
+import fr.openent.searchengine.services.ExplorerSearchService;
 import fr.openent.searchengine.controllers.SearchEngineController;
 import io.vertx.core.Promise;
 import org.entcore.common.http.BaseServer;
@@ -29,11 +30,18 @@ public class SearchEngine extends BaseServer {
 	public void start(Promise<Void> startPromise) throws Exception {
     final Promise<Void> promise = Promise.promise();
 		super.start(promise);
-    promise.future().map(e ->
-      addController(new SearchEngineController(config.getInteger("max-sec-time-allowed", 4),
-        config.getInteger("paging-size-per-collection", 10), config.getInteger("search-word-min-size", 4),
-        config.getString("frontend-ui", "react")))
-    )
+    final int pagingSize = config.getInteger("paging-size-per-collection", 10);
+    promise.future().map(e -> {
+      final SearchEngineController controller = new SearchEngineController(
+        config.getInteger("max-sec-time-allowed", 4), pagingSize,
+        config.getInteger("search-word-min-size", 4),
+        config.getString("frontend-ui", "react"));
+      // Source OpenSearch (index Explorer). La conf est celle du module si elle
+      // existe, sinon celle de la plateforme (sharedData « server »). Absente,
+      // le service se désactive et le moteur garde ses seules sources historiques.
+      controller.setExplorerSearch(ExplorerSearchService.create(vertx, config, pagingSize));
+      return addController(controller);
+    })
     .onSuccess(e -> startPromise.complete())
     .onFailure(startPromise::fail);
 	}

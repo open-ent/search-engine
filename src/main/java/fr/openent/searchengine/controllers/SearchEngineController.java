@@ -20,6 +20,7 @@
 package fr.openent.searchengine.controllers;
 
 import fr.openent.searchengine.SearchEngine;
+import fr.openent.searchengine.services.ExplorerSearchService;
 import fr.wseduc.rs.ApiDoc;
 import fr.wseduc.rs.Get;
 import fr.wseduc.rs.Post;
@@ -57,6 +58,8 @@ public class SearchEngineController extends BaseController {
 	private Integer searchWordMinSize;
 	/** IHM par défaut servie sur GET "" : "react" (nouvelle) ou "angular" (ancienne). Pilotée par la conf `frontend-ui` (alimentée par FRONTEND_UI_DEFAULT). */
 	private String frontendUi;
+	/** Source OpenSearch (index Explorer) — désactivée si la plateforme n'expose pas de conf Elasticsearch. */
+	private ExplorerSearchService explorerSearch;
 	private static final I18n i18n = I18n.getInstance();
 	private static final String[] RESULT_COLUMNS_HEADER = new String[] {"title", "description", "modified", "ownerDisplayName", "ownerId", "url"};
 
@@ -76,6 +79,15 @@ public class SearchEngineController extends BaseController {
 		this.pagingSizePerCollection = pagingSizePerCollection;
 		this.searchWordMinSize = searchWordMinSize;
 		this.frontendUi = ("angular".equals(frontendUi)) ? "angular" : "react";
+	}
+
+	/** Injecté par le verticle : la création exige le Vertx et la conf du module. */
+	public void setExplorerSearch(final ExplorerSearchService explorerSearch) {
+		this.explorerSearch = explorerSearch;
+	}
+
+	private boolean explorerEnabled() {
+		return explorerSearch != null && explorerSearch.isEnabled();
 	}
 
 	@Get("")
@@ -105,6 +117,11 @@ public class SearchEngineController extends BaseController {
       .onSuccess(apps -> {
         for (String app : apps) {
           types.add(app);
+        }
+        // Ressources indexées dans OpenSearch (Explorer) : couvertes par aucun
+        // SearchingHandler, on les expose comme un type à part entière.
+        if (explorerEnabled()) {
+          types.add(ExplorerSearchService.TYPE);
         }
         renderJson(request, types);
       })
@@ -161,9 +178,15 @@ public class SearchEngineController extends BaseController {
 					final Set<Boolean> isCompletedResult = new HashSet<Boolean>();
 					vertx.sharedData().getAsyncMap(SearchingHandler.class.getName())
             .flatMap(AsyncMap::keys)
-            .onSuccess(appRegisteredUntreated -> {
+            .onSuccess(appRegisteredUntreatedFromMap -> {
               final JsonArray results = new JsonArray();
               final String address = "search." + searchId;
+              // Set mutable : la source Explorer s'y ajoute comme une source de plus,
+              // pour que la finalisation attende sa réponse au même titre que les autres.
+              final Set<String> appRegisteredUntreated = new HashSet<>();
+              for (Object registered : appRegisteredUntreatedFromMap) appRegisteredUntreated.add(String.valueOf(registered));
+              final boolean explorerRequested = explorerEnabled() && types.contains(ExplorerSearchService.TYPE);
+              if (explorerRequested) appRegisteredUntreated.add(ExplorerSearchService.TYPE);
 
               final MessageConsumer<JsonObject> messageConsumer = eb.localConsumer(address);
               final Boolean[] rendered = new Boolean[]{Boolean.FALSE};
@@ -246,6 +269,30 @@ public class SearchEngineController extends BaseController {
               };
 
               messageConsumer.handler(searchHandler);
+
+              if (explorerRequested) {
+                explorerSearch.search(user, searchWords, currentPage).onComplete(ar -> {
+                  appRegisteredUntreated.remove(ExplorerSearchService.TYPE);
+                  if (ar.succeeded()) {
+                    final JsonArray explorerResults = ar.result();
+                    final int realSizeResult;
+                    if (explorerResults.size() > SearchEngineController.this.pagingSizePerCollection) {
+                      isCompletedResult.add(false);
+                      realSizeResult = explorerResults.size() - 1;
+                    } else {
+                      realSizeResult = explorerResults.size();
+                    }
+                    for (int i = 0; i < realSizeResult; i++) {
+                      results.add(explorerResults.getJsonObject(i).put("app", ExplorerSearchService.TYPE));
+                    }
+                  } else {
+                    log.error("Explorer/OpenSearch search failed", ar.cause());
+                  }
+                  if (appRegisteredUntreated.isEmpty() || treatyIsSoLong[0]) {
+                    finalizeSearch.handle(treatyIsSoLong[0] && !appRegisteredUntreated.isEmpty());
+                  }
+                });
+              }
 
               publish(user, searchId, currentPage, searchWords, types, locale);
             })

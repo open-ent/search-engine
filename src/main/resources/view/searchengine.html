@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{{#i18n}}searchengine.title{{/i18n}}</title>
     <link rel="icon" id="favicon" href="" />
+    <!-- Bootstrap openent partagé, chargé au runtime (comme les autres modules React) :
+         c'est lui qui porte les couleurs de marque par instance, via les sélecteurs
+         [data-product][data-theme]. Sans ce lien, le module reste figé sur la palette
+         compilée dans son bundle et ignore le thème de l'établissement. -->
+    <link rel="stylesheet" href="/assets/themes/openent-bootstrap/index.css" />
     <script type="module" crossorigin src="/searchengine/public/index.js"></script>
     <link rel="stylesheet" crossorigin href="/searchengine/public/index.css">
   </head>

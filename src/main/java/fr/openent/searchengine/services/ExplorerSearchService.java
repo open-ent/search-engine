@@ -104,22 +104,7 @@ public class ExplorerSearchService {
             .put("_source", new JsonArray()
                 .add("name").add("description").add("application").add("assetId")
                 .add("creatorId").add("creatorName").add("updatedAt"))
-            .put("query", new JsonObject().put("bool", new JsonObject()
-                .put("must", new JsonArray().add(new JsonObject().put("multi_match", new JsonObject()
-                    .put("query", terms)
-                    // bool_prefix : les mots complets doivent tous être présents et
-                    // le dernier est traité comme un préfixe, pour que « mathé »
-                    // trouve « mathématiques » comme l'attend l'utilisateur.
-                    .put("type", "bool_prefix")
-                    // `name` est mappé en keyword (recherche exacte) : la recherche
-                    // plein texte doit viser `contentAll`, le champ analysé qui reçoit
-                    // name et creatorName via copy_to, ainsi que `contentHtml`.
-                    .put("fields", new JsonArray().add("contentAll^3").add("contentHtml"))
-                    .put("operator", "and"))))
-                .put("filter", new JsonArray().add(new JsonObject().put("term",
-                    new JsonObject().put("trashed", false))))
-                .put("should", visibilityClauses(user))
-                .put("minimum_should_match", 1)));
+            .put("query", buildQuery(terms, user));
 
         return manager.getClient()
             .search(INDEX, payload, new ElasticClient.ElasticOptions())
@@ -135,6 +120,53 @@ public class ExplorerSearchService {
         if (value == null) return "";
         return java.text.Normalizer.normalize(value.trim(), java.text.Normalizer.Form.NFD)
             .replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+    }
+
+    /** Requête commune à la recherche et au comptage : pertinence, corbeille, droits. */
+    private JsonObject buildQuery(final String terms, final UserInfos user) {
+        return new JsonObject().put("bool", new JsonObject()
+            .put("must", new JsonArray().add(new JsonObject().put("multi_match", new JsonObject()
+                .put("query", terms)
+                // bool_prefix : les mots complets doivent tous être présents et le
+                // dernier est traité comme un préfixe, pour que « mathé » trouve
+                // « mathématiques » comme l'attend l'utilisateur.
+                .put("type", "bool_prefix")
+                // `name` est mappé en keyword (recherche exacte) : la recherche plein
+                // texte doit viser `contentAll`, le champ analysé qui reçoit name et
+                // creatorName via copy_to, ainsi que `contentHtml`.
+                .put("fields", new JsonArray().add("contentAll^3").add("contentHtml"))
+                .put("operator", "and"))))
+            .put("filter", new JsonArray().add(new JsonObject().put("term",
+                new JsonObject().put("trashed", false))))
+            .put("should", visibilityClauses(user))
+            .put("minimum_should_match", 1));
+    }
+
+    /**
+     * Nombre total de ressources correspondantes, pour la colonne de facettes.
+     * OpenSearch sait compter sans rapatrier les documents : ce total est exact,
+     * contrairement aux compteurs plafonnés des sources historiques.
+     */
+    public Future<Integer> count(final UserInfos user, final JsonArray words) {
+        if (!isEnabled()) return Future.succeededFuture(0);
+        final String terms = words.stream().map(String::valueOf)
+            .map(ExplorerSearchService::stripAccents)
+            .filter(w -> !w.isEmpty())
+            .collect(Collectors.joining(" "));
+        if (terms.trim().isEmpty()) return Future.succeededFuture(0);
+
+        final JsonObject payload = new JsonObject()
+            .put("size", 0)
+            .put("track_total_hits", true)
+            .put("query", buildQuery(terms, user));
+
+        return manager.getClient()
+            .searchWithMeta(INDEX, payload, new ElasticClient.ElasticOptions())
+            .map(res -> res.getCount() == null ? 0 : res.getCount().intValue())
+            .otherwise(th -> {
+                log.error("[SearchEngine] Explorer/OpenSearch count failed", th);
+                return 0;
+            });
     }
 
     /** Clauses de visibilité : créateur, partage nominatif, partage à un groupe. */

@@ -79,4 +79,31 @@ export async function search(params: SearchParams): Promise<SearchResponse> {
   );
 }
 
-export const api = { getTypes, search };
+export interface FacetCount {
+  count: number;
+  /** true si le compteur est plafonné (afficher « 100+ »). */
+  capped: boolean;
+}
+
+export interface FacetsResponse {
+  counts: Record<string, FacetCount>;
+  total: number;
+}
+
+/**
+ * Compteurs par type pour la colonne de facettes.
+ * Les sources historiques ne savent pas rendre de total : le backend réinterroge
+ * avec une limite haute et compte, d'où les compteurs éventuellement plafonnés.
+ */
+export async function getFacets(params: { searchText: string; filter: string[] }): Promise<FacetsResponse> {
+  return json<FacetsResponse>(
+    await fetch('/searchengine/facets', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    }),
+  );
+}
+
+export const api = { getTypes, search, getFacets };

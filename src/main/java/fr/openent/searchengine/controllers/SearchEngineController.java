@@ -61,6 +61,8 @@ public class SearchEngineController extends BaseController {
 	/** Source OpenSearch (index Explorer) — désactivée si la plateforme n'expose pas de conf Elasticsearch. */
 	private ExplorerSearchService explorerSearch;
 	private static final I18n i18n = I18n.getInstance();
+	/** Plafond de comptage des facettes : au-delà, le compteur est marqué minoré. */
+	private static final int FACET_COUNT_CAP = 100;
 	private static final String[] RESULT_COLUMNS_HEADER = new String[] {"title", "description", "modified", "ownerDisplayName", "ownerId", "url"};
 
 	@Override
@@ -132,6 +134,107 @@ public class SearchEngineController extends BaseController {
 	 * search.
 	 * @param request Client request.
 	 */
+	/**
+	 * Compteurs par type pour la colonne de facettes.
+	 * <p>
+	 * Aucune source ne sait renvoyer un total : le protocole existant ne rend qu'une
+	 * page de résultats. On réinterroge donc les sources avec une limite haute et on
+	 * compte ce qui revient — exact tant que le type reste sous le plafond, sinon
+	 * marqué comme minoré (`capped`). C'est volontairement contenu dans ce module :
+	 * aucun autre module ne change, aucune donnée n'est dupliquée. Les vrais totaux
+	 * pourront remplacer ces compteurs source par source plus tard.
+	 */
+	@Post("/facets")
+	@SecuredAction(value = "searchengine.view", type = ActionType.AUTHENTICATED)
+	public void facets(final HttpServerRequest request) {
+		request.pause();
+		UserUtils.getUserInfos(eb, request, new Handler<UserInfos>() {
+			public void handle(final UserInfos user) {
+				request.resume();
+				if (user == null) {
+					Renders.unauthorized(request);
+					return;
+				}
+				processFacets(request, user);
+			}
+		});
+	}
+
+	private void processFacets(final HttpServerRequest request, final UserInfos user) {
+		// Schéma dédié : la pagination n'a pas de sens pour un comptage.
+		RequestUtils.bodyToJson(request, pathPrefix + "facets", new Handler<JsonObject>() {
+			public void handle(JsonObject data) {
+				final JsonArray searchWords = checkAndComposeWordFromSearchText(data.getString("searchText", ""));
+				final JsonArray types = data.getJsonArray("filter", new JsonArray());
+				final String locale = I18n.acceptLanguage(request);
+
+				if (searchWords.size() == 0 || types.size() == 0) {
+					renderJson(request, new JsonObject().put("counts", new JsonObject()).put("total", 0));
+					return;
+				}
+
+				final String searchId = UUID.randomUUID().toString();
+				vertx.sharedData().getAsyncMap(SearchingHandler.class.getName())
+					.flatMap(AsyncMap::keys)
+					.onSuccess(registered -> {
+						final JsonObject counts = new JsonObject();
+						final Set<String> pending = new HashSet<>();
+						for (Object app : registered) pending.add(String.valueOf(app));
+						final boolean explorerRequested = explorerEnabled() && types.contains(ExplorerSearchService.TYPE);
+						if (explorerRequested) pending.add(ExplorerSearchService.TYPE);
+
+						final String address = "search." + searchId;
+						final MessageConsumer<JsonObject> consumer = eb.localConsumer(address);
+						final Boolean[] rendered = new Boolean[]{Boolean.FALSE};
+						final long[] timerId = new long[1];
+
+						final Handler<Void> finalize = v -> {
+							if (rendered[0]) return;
+							rendered[0] = true;
+							vertx.cancelTimer(timerId[0]);
+							consumer.unregister();
+							int total = 0;
+							for (String key : counts.fieldNames()) {
+								total += counts.getJsonObject(key).getInteger("count", 0);
+							}
+							renderJson(request, new JsonObject().put("counts", counts).put("total", total));
+						};
+
+						timerId[0] = vertx.setTimer(SearchEngineController.this.maxSecTimeAllowed * 1000L,
+							id -> finalize.handle(null));
+
+						consumer.handler(event -> {
+							final String app = event.body().getString("application");
+							pending.remove(app);
+							event.reply(new JsonObject().put("message", "ok"));
+							final JsonArray res = event.body().getJsonArray("results", new JsonArray());
+							if (res.size() > 0) {
+								counts.put(app, new JsonObject()
+									.put("count", Math.min(res.size(), FACET_COUNT_CAP))
+									.put("capped", res.size() >= FACET_COUNT_CAP));
+							}
+							if (pending.isEmpty()) finalize.handle(null);
+						});
+
+						if (explorerRequested) {
+							explorerSearch.count(user, searchWords).onComplete(ar -> {
+								pending.remove(ExplorerSearchService.TYPE);
+								if (ar.succeeded() && ar.result() > 0) {
+									// OpenSearch sait donner le vrai total : jamais minoré.
+									counts.put(ExplorerSearchService.TYPE, new JsonObject()
+										.put("count", ar.result()).put("capped", false));
+								}
+								if (pending.isEmpty()) finalize.handle(null);
+							});
+						}
+
+						publish(user, searchId, 0, searchWords, types, locale, FACET_COUNT_CAP);
+					})
+					.onFailure(th -> Renders.renderError(request));
+			}
+		});
+	}
+
 	@Post("")
 	@SecuredAction(value = "searchengine.view", type = ActionType.AUTHENTICATED)
 	public void search(final HttpServerRequest request) {
@@ -344,6 +447,11 @@ public class SearchEngineController extends BaseController {
 
 	private void publish(UserInfos user, String searchId, Integer currentPage, JsonArray searchWords,
 						 JsonArray types, String locale) {
+		publish(user, searchId, currentPage, searchWords, types, locale, this.pagingSizePerCollection + 1);
+	}
+
+	private void publish(UserInfos user, String searchId, Integer currentPage, JsonArray searchWords,
+						 JsonArray types, String locale, int limit) {
 		final JsonObject message = new JsonObject().put("searchId", searchId);
 
 		message.put("userId", user.getUserId());
@@ -351,7 +459,7 @@ public class SearchEngineController extends BaseController {
 		message.put("searchWords", searchWords);
 		message.put("page", currentPage);
 		//Increase the size page to obtain a feedback on next results
-		message.put("limit", this.pagingSizePerCollection + 1);
+		message.put("limit", limit);
 		message.put("columnsHeader", new JsonArray(Arrays.asList(RESULT_COLUMNS_HEADER)));
 		message.put("appFilters", types);
 		message.put("locale", locale);

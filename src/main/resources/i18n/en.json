@@ -42,5 +42,6 @@
   "tooltip.owner": "Resource owner",
   "tooltip.title": "Resource title",
   "wikisearchingevents": "Lecture and Wiki",
+  "workflowhubsearchingevents": "Procedures",
   "workspacesearchingevents": "Document space"
 }

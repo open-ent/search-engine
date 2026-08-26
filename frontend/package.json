@@ -12,9 +12,9 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@open-ent/bootstrap": "^2.5.30",
-    "@open-ent/client": "^2.5.30",
-    "@open-ent/react": "^2.5.30",
+    "@open-ent/bootstrap": "2.5.30-patched",
+    "@open-ent/client": "2.5.30-patched",
+    "@open-ent/react": "2.5.30-patched",
     "@tanstack/react-query": "5.62.7",
     "i18next": "23.8.1",
     "i18next-http-backend": "2.4.2",

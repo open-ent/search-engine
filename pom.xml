@@ -20,7 +20,7 @@
     </scm>
 
     <properties>
-        <entcore.version>6.14.9</entcore.version>
+        <entcore.version>6.14.9-patched</entcore.version>
     </properties>
 
     <repositories>
@@ -43,12 +43,6 @@
             <artifactId>common</artifactId>
             <version>${entcore.version}</version>
             <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.entcore</groupId>
-            <artifactId>tests</artifactId>
-            <version>${entcore.version}</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.gatling.highcharts</groupId>
@@ -107,5 +101,27 @@
             </plugin>
         </plugins>
     </build>
-</project>
 
+    <profiles>
+        <!--
+            org.entcore:tests ne fournit QUE les scénarios Gatling/Scala (src/test/scala/**),
+            jamais joués en CI. Depuis le 08/09/2026, le module `tests` d'entcore est exclu de la
+            publication du fork (open-ent/entcore-v2, commit 275a060 : maven-scala-plugin 2.15.2 ne
+            compile plus Scala 2.12 sous JDK 21), donc org.entcore:tests:*-patched n'existe plus.
+            Maven résout les dépendances de portée `test` même avec -Dmaven.test.skip=true : laissée
+            dans <dependencies>, elle faisait échouer `mvn package` (donc toute la CI).
+            `mvn -Pgatling-it ...` pour la réactiver le jour où l'artefact sera republié.
+        -->
+        <profile>
+            <id>gatling-it</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.entcore</groupId>
+                    <artifactId>tests</artifactId>
+                    <version>${entcore.version}</version>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+</project>

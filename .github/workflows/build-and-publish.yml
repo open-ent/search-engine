@@ -70,11 +70,21 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_ACTOR: ${{ github.actor }}
 
+      # Les artefacts entcore `-patched` sont republiés À VERSION IDENTIQUE (convention du
+      # fork : une branche `X.Y.Z-patched-dev`, un tag `X.Y.Z-patched` qu'on déplace). Or Maven
+      # tient une version release pour immuable et ne la retélécharge jamais si elle est déjà
+      # dans le dépôt local — le cache de `setup-java` sert alors un entcore périmé.
+      - name: Purger entcore du cache Maven (versions -patched republiées)
+        run: rm -rf ~/.m2/repository/org/entcore
+
       - name: Build fat JAR
         run: |
           ENTCORE_OPT=""
-          if [ -n "$ENTCORE_VERSION" ]; then ENTCORE_OPT="-DentCoreVersion=$ENTCORE_VERSION"; fi
-          mvn clean package -DskipTests -B -DbuildNumber=${GITHUB_SHA::8} -DscmBranch=${GITHUB_REF_NAME} $ENTCORE_OPT
+          # La propriété du pom est `entcore.version` (et non `entCoreVersion`).
+          if [ -n "$ENTCORE_VERSION" ]; then ENTCORE_OPT="-Dentcore.version=$ENTCORE_VERSION"; fi
+          # -Dmaven.test.skip=true (pas -DskipTests) : évite la compilation des tests, qui crashe
+          # sous JDK 21 via maven-scala-plugin:2.15.2 hérité d'app-parent (testCompile scala).
+          mvn clean package -Dmaven.test.skip=true -B -DbuildNumber=${GITHUB_SHA::8} -DscmBranch=${GITHUB_REF_NAME} $ENTCORE_OPT
         env:
           ENTCORE_VERSION: ${{ github.event.inputs.entcore_version }}
 

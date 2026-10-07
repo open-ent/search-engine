@@ -21,7 +21,7 @@
 
     <properties>
         <entcore.version>6.16.14-patched</entcore.version>
-        <entCoreLibsVersion>6.16.7-patched</entCoreLibsVersion>
+        <entCoreLibsVersion>6.16.8-patched</entCoreLibsVersion>
     </properties>
 
     <repositories>

@@ -17,6 +17,7 @@
         "entcore.port" : 8009,
         "max-sec-time-allowed" : 4,
         "paging-size-per-collection" : 10,
-        "search-word-min-size" : 4
+        "search-word-min-size" : 4,
+        "frontend-ui" : "react"
       }
     }

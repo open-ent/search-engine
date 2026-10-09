@@ -228,7 +228,15 @@ public class SearchEngineController extends BaseController {
 							});
 						}
 
-						publish(user, searchId, 0, searchWords, types, locale, FACET_COUNT_CAP);
+						// Même précaution que pour la recherche : attendre que l'adresse de
+						// collecte soit enregistrée dans le cluster avant de solliciter les sources.
+						consumer.completionHandler(registration -> {
+							if (registration.failed()) {
+								log.error("Search engine : consumer registration failed for " + address,
+										registration.cause());
+							}
+							publish(user, searchId, 0, searchWords, types, locale, FACET_COUNT_CAP);
+						});
 					})
 					.onFailure(th -> Renders.renderError(request));
 			}
@@ -291,7 +299,13 @@ public class SearchEngineController extends BaseController {
               final boolean explorerRequested = explorerEnabled() && types.contains(ExplorerSearchService.TYPE);
               if (explorerRequested) appRegisteredUntreated.add(ExplorerSearchService.TYPE);
 
-              final MessageConsumer<JsonObject> messageConsumer = eb.consumer(address);
+              // localConsumer, comme le fait déjà le calcul des facettes : les sources de
+              // recherche vivent toutes dans CETTE JVM (le monolithe), et un consumer
+              // clusterisé ferait transiter leurs réponses par la table de routage
+              // distribuée de l'event bus. Avec plusieurs membres Hazelcast dans le
+              // cluster, ce détour fait disparaître les réponses et la recherche repart
+              // vide au bout de son budget — alors qu'en mono-membre tout fonctionne.
+              final MessageConsumer<JsonObject> messageConsumer = eb.localConsumer(address);
               final Boolean[] rendered = new Boolean[]{Boolean.FALSE};
               final long[] timerIDHolder = new long[1];
 
@@ -401,7 +415,19 @@ public class SearchEngineController extends BaseController {
                 });
               }
 
-              publish(user, searchId, currentPage, searchWords, types, locale);
+              // L'enregistrement d'un consumer sur l'event bus CLUSTERISÉ est propagé de
+              // façon asynchrone : publier avant qu'il soit effectif fait répondre les
+              // sources à une adresse que personne n'écoute encore, et leurs réponses sont
+              // perdues — la recherche repart alors systématiquement au bout du budget.
+              // Le verrou distribué masquait le défaut en retardant les sources de
+              // quelques centaines de millisecondes ; sans lui, elles répondent trop tôt.
+              messageConsumer.completionHandler(registration -> {
+                if (registration.failed()) {
+                  log.error("Search engine : consumer registration failed for " + address,
+                      registration.cause());
+                }
+                publish(user, searchId, currentPage, searchWords, types, locale);
+              });
             })
             .onFailure(th -> {
               log.error("Error while processing search", th);

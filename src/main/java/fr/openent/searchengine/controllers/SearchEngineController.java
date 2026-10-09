@@ -324,7 +324,11 @@ public class SearchEngineController extends BaseController {
                 @Override
                 public void handle(Long aLong) {
                   treatyIsSoLong[0] = true;
-                  log.warn("search engine performed a partial search : max time exceeded, some sources did not answer");
+                  // Nommer les sources manquantes : sans elles, un timeout ne dit pas QUI
+                  // n'a pas répondu, et la recherche reste partielle sans piste à suivre.
+                  log.warn("search engine performed a partial search : max time exceeded, "
+                      + "sources did not answer in " + SearchEngineController.this.maxSecTimeAllowed
+                      + "s : " + appRegisteredUntreated);
                   finalizeSearch.handle(true);
                 }
               });

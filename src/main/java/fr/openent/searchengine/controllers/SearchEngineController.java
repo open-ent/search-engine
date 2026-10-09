@@ -205,7 +205,11 @@ public class SearchEngineController extends BaseController {
 
 						consumer.handler(event -> {
 							final String app = event.body().getString("application");
-							pending.remove(app);
+							// Même déduplication que pour la recherche, sans verrou.
+							if (!pending.remove(app)) {
+								event.reply(new JsonObject().put("message", "ok"));
+								return;
+							}
 							event.reply(new JsonObject().put("message", "ok"));
 							final JsonArray res = event.body().getJsonArray("results", new JsonArray());
 							if (res.size() > 0) {
@@ -351,11 +355,20 @@ public class SearchEngineController extends BaseController {
                 @Override
                 public void handle(Message<JsonObject> event) {
                   final String app = event.body().getString("application");
-                  appRegisteredUntreated.remove(app);
+                  // Déduplication SANS verrou : quand un module tourne en plusieurs
+                  // exemplaires, chacun répond. Le premier retire la source des
+                  // attendues ; les suivants trouvent un Set déjà purgé et sont
+                  // ignorés, sinon leurs résultats seraient comptés deux fois.
+                  // C'est ce que le verrou distribué protégeait (amont ENABLING-965),
+                  // mais sans rien coordonner entre les nœuds.
+                  if (!appRegisteredUntreated.remove(app)) {
+                    event.reply(new JsonObject().put("message", "ok"));
+                    return;
+                  }
 
                   if (log.isDebugEnabled()) {
-                    log.debug("Search engine " + searchId + ", handle a result for : " +
-                      app);
+                    log.debug("Search engine " + searchId + ", handle a result for : " + app
+                      + " (" + event.body().getJsonArray("results", new JsonArray()).size() + " résultats)");
                   }
 
                   final String replyMessage = checkCurrentResult(event.body().getValue("results"));

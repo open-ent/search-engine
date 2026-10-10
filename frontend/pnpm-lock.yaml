@@ -512,13 +512,13 @@ packages:
     engines: {node: '>= 10'}
 
   '@open-ent/bootstrap@2.5.30-patched':
-    resolution: {integrity: sha512-nXVzf4eRImEc0b2bU8js4hudM63NjqH1M2Sdj1+7j/SA9NvI2Pu5VxoA1w1qMFZajvM+4QHroCFJ4egTWwIGsg==, tarball: https://npm.pkg.github.com/download/@open-ent/bootstrap/2.5.30-patched/04f817c37394ec3c757a734e256854ffaa053dcc}
+    resolution: {integrity: sha512-SlB2Lc5NZ5ZC39fl/Y7FA15Q3/3EzIbZXO3LbvorTqow6sHfKVXO409lF7o5bKBefRtYZ2wwpLVufYPrujtSyA==, tarball: https://npm.pkg.github.com/download/@open-ent/bootstrap/2.5.30-patched/0ddc04210e9abaaacad63624c2cf19270e3fa624}
 
   '@open-ent/client@2.5.30-patched':
-    resolution: {integrity: sha512-7XEGorQyJ0FiPucL9SJur4x5SnPbvwhgfLMhUGDxQXMmQcbLVfrj2m6vuOELNxx10EbFEv+ZYv1AV3Ow4wB+Ug==, tarball: https://npm.pkg.github.com/download/@open-ent/client/2.5.30-patched/5a19821761b659a672368a9c8b61745220c046bc}
+    resolution: {integrity: sha512-M+63EBTWykwdhL1iPPKD57+Xd1imgz9GTsTb41nv0n6AmbuItggbGUXSj5+uzhf6XpDg+bJ7jnGM9mJrDOCilQ==, tarball: https://npm.pkg.github.com/download/@open-ent/client/2.5.30-patched/4c20377db1b6028283976fa315da3dfc9c0bd763}
 
   '@open-ent/react@2.5.30-patched':
-    resolution: {integrity: sha512-V7++IHNGctLH8V4VHdDNJEur3pnLYJhEnTQJnJh5wgXpYuvrcvVPnX6gAghDaRQ+T0lCLB9H80YlHjuZhjVSbQ==, tarball: https://npm.pkg.github.com/download/@open-ent/react/2.5.30-patched/8ee49fc0954818aa8d78d72d4a085c54161e1692}
+    resolution: {integrity: sha512-Ot34eWsLAD+2+jNEg3U5E7chtk4wS+q84QQFdhpu2CnZ97W40CnwvwQ1MbKXYdPXVYH4p9EwQt7+4iOdQqE4yw==, tarball: https://npm.pkg.github.com/download/@open-ent/react/2.5.30-patched/2a7c5559946664225be697ed592ebae4490cba0e}
     peerDependencies:
       '@react-spring/web': 9.7.5
       '@tanstack/react-query': 5.62.7
@@ -528,7 +528,7 @@ packages:
       react-i18next: 14.1.3
 
   '@open-ent/tiptap-extensions@2.5.30-patched':
-    resolution: {integrity: sha512-FxBlt+R0XtjlkjRdyZqhP54fWgMn4vPycVcwQ9ys3pgXSlDhXbEY+Yvuj9KZX2WhzK4scD1DOWpOa00mruaa8w==, tarball: https://npm.pkg.github.com/download/@open-ent/tiptap-extensions/2.5.30-patched/082e678398ac73c0f59aeceabf089621d5d75594}
+    resolution: {integrity: sha512-i0yVncm/P8wZbA4hsJoFTvab69avRDG/QhlnverQs4giztq9uLZI8YJam6CVovi+vImvgnyKTMTuKB1En/5Fzg==, tarball: https://npm.pkg.github.com/download/@open-ent/tiptap-extensions/2.5.30-patched/634fc9d19e1f23efadcc275168388cc5d338fa43}
 
   '@open-ent/utilities@2.5.30-patched':
     resolution: {integrity: sha512-lLVDpibWuGua1Tvsuupc2ftvq7CrJK1/LMG2Ttzqyu0bYB3QDCdfAJNPwpS+njFbd6aG219NgtbCQxdft78huQ==, tarball: https://npm.pkg.github.com/download/@open-ent/utilities/2.5.30-patched/a5bae22250522b5d5150e867a393ea540818fc35}

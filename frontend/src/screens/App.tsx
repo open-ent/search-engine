@@ -10,6 +10,7 @@ import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 're
 import { useTranslation } from 'react-i18next';
 
 import { api, ApiError, FacetCount, SearchResult } from '../api';
+import { setLanguage } from '../locale';
 import {
   DESCRIPTION_MAX,
   MIN_WORD,
@@ -67,7 +68,13 @@ function queryFromHash(): string {
 }
 
 export function App() {
-  const { currentApp, init } = useEdificeClient();
+  const { currentApp, currentLanguage, init } = useEdificeClient();
+
+  // La locale de formatage des dates suit la langue de la session (cf. locale.ts). Elle est
+  // posée pendant le rendu, et non dans un effet : les écrans sont montés sous ce composant
+  // et formateraient leurs premières dates en français avant que l'effet ne s'exécute.
+  setLanguage(currentLanguage);
+
   const { t } = useTranslation(['searchengine', 'common']);
 
   const typesQuery = useQuery({ queryKey: ['searchTypes'], queryFn: api.getTypes });

@@ -1,3 +1,5 @@
+import { dateLocale } from './locale';
+
 /** Fonctions pures du moteur de recherche (testables sans DOM applicatif). */
 
 /** Taille minimale d'un mot recherché (cf. conf backend `search-word-min-size`). */
@@ -23,7 +25,7 @@ export function formatDate(iso?: string): string {
   const d = new Date(iso);
   return Number.isNaN(d.getTime())
     ? ''
-    : d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    : d.toLocaleDateString(dateLocale(), { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
 /** Vrai si la requête contient au moins un mot d'au moins MIN_WORD caractères. */

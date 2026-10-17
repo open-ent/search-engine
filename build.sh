@@ -20,11 +20,34 @@ case `uname -s` in
     fi
 esac
 
+# Interface React (frontend/, Vite) : construite sur l'hôte puis rangée dans les ressources du module, pour que
+# `./build.sh install` produise à lui seul le jar complet (AngularJS + React) — aucune copie à la main.
+# Ancien bundle supprimé d'abord et échec franc : jamais un vieux bundle embarqué en silence.
+# Prérequis : Node >= 18 (corepack) et NODE_AUTH_TOKEN (paquets @open-ent privés).
+buildReact () {
+  local fe dir
+  for fe in frontend; do
+    [ -f "$fe/package.json" ] || continue
+    dir=$(dirname "$fe")
+    echo "[buildReact] Construction de l'interface React ($fe)"
+    (
+      cd "$fe" || exit 1
+      rm -rf dist
+      corepack pnpm install --frozen-lockfile || exit 1
+      corepack pnpm build || exit 1
+      ls dist/public/*.js >/dev/null 2>&1 || { echo "[buildReact] aucun bundle dans dist/public : build React invalide"; exit 1; }
+    ) || { echo "[buildReact] ÉCHEC ($fe)"; exit 1; }
+    mkdir -p "$dir/src/main/resources/public"
+    cp -r "$fe/dist/public/." "$dir/src/main/resources/public/"
+  done
+}
+
 clean () {
   docker compose run --rm maven mvn $MVN_OPTS clean
 }
 
 install () {
+  buildReact
   docker compose run --rm maven mvn $MVN_OPTS install -DskipTests
 }
 

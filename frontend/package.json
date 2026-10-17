@@ -15,8 +15,8 @@
     "@open-ent/bootstrap": "2.5.30-patched",
     "@open-ent/client": "2.5.30-patched",
     "@open-ent/react": "2.5.30-patched",
-    "@tanstack/react-query": "5.62.7",
-    "i18next": "23.8.1",
+    "@tanstack/react-query": "5.104.2",
+    "i18next": "23.16.8",
     "i18next-http-backend": "2.4.2",
     "react": "18.3.1",
     "react-dom": "18.3.1",
@@ -34,7 +34,7 @@
   "packageManager": "pnpm@9.15.0",
   "pnpm": {
     "overrides": {
-      "i18next": "23.8.1"
+      "i18next": "23.16.8"
     }
   }
 }

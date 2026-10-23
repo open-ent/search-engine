@@ -96,13 +96,60 @@ public class SearchEngineController extends BaseController {
 	@ApiDoc("Allows to display the main view")
 	@SecuredAction("searchengine.auth")
 	public void view(HttpServerRequest request) {
+		withPreferredUi(request, frontendUi, ui -> viewWith(request, ui));
+	}
+
+	/** Clé de préférence usager (« Paramètres du compte → Interfaces en cours de renouvellement ») portant le choix d'IHM. */
+	private static final String UI_PREFERENCE = "searchengineUi";
+
+	/**
+	 * IHM à servir, par ordre de priorité : la dérogation d'URL {@code ?ui=react|angular} (non mémorisée), la préférence
+	 * de l'usager (clé {@code searchengineUi}), puis celle de la plateforme. La préférence est lue à sa source, le nœud
+	 * {@code UserAppConf} du graphe ; aucune panne de cette lecture n'empêche le module de s'afficher.
+	 */
+	private void withPreferredUi(final HttpServerRequest request, final String platformUi, final io.vertx.core.Handler<String> handler) {
+		final String forced = request.getParam("ui");
+		if ("react".equals(forced) || "angular".equals(forced)) {
+			handler.handle(forced);
+			return;
+		}
+		org.entcore.common.user.UserUtils.getUserInfos(eb, request, user -> {
+			if (user == null) {
+				handler.handle(platformUi);
+				return;
+			}
+			final String query = "MATCH (:User {id:{userId}})-[:PREFERS]->(uac:UserAppConf) RETURN uac." + UI_PREFERENCE + " AS preference";
+			try {
+				org.entcore.common.neo4j.Neo4j.getInstance().execute(query, new JsonObject().put("userId", user.getUserId()),
+						message -> handler.handle(readUi(message.body(), platformUi)));
+			} catch (Exception e) {
+				// Graphe non initialisé pour ce module (`neo4j: false`) : la plateforme tranche, jamais d'erreur 500.
+				handler.handle(platformUi);
+			}
+		});
+	}
+
+	/** Extrait le choix d'IHM du résultat Neo4j — la préférence y est rangée en CHAÎNE JSON, ex. {"ui":"react"}. */
+	static String readUi(JsonObject body, String platformUi) {
+		try {
+			final io.vertx.core.json.JsonArray rows = body.getJsonArray("result", new io.vertx.core.json.JsonArray());
+			if (rows.isEmpty()) return platformUi;
+			final String raw = rows.getJsonObject(0).getString("preference");
+			if (raw == null || raw.trim().isEmpty()) return platformUi;
+			final String ui = new JsonObject(raw).getString("ui");
+			return ("react".equals(ui) || "angular".equals(ui)) ? ui : platformUi;
+		} catch (Exception e) {
+			// Préférence illisible ou graphe en échec : jamais d'erreur pour un choix d'habillage.
+			return platformUi;
+		}
+	}
+
+	private void viewWith(final HttpServerRequest request, final String ui) {
 		// Choix de l'IHM (CCTP 51C — migration React) :
 		//  - défaut piloté par la conf `frontend-ui` (react|angular) ;
 		//  - override par requête `?ui=react|angular` (test/prévisualisation).
 		// La nouvelle IHM React est servie par `searchengine.html`, l'ancienne AngularJS
 		// (préservée) par `searchengine-angular.html`.
-		final String uiParam = request.getParam("ui");
-		final String ui = ("react".equals(uiParam) || "angular".equals(uiParam)) ? uiParam : frontendUi;
 		final String view = "angular".equals(ui) ? "searchengine-angular.html" : "searchengine.html";
 		renderView(request, new JsonObject(), view, null);
 

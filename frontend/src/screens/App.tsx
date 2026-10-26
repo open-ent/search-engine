@@ -17,7 +17,10 @@ import {
   formatDate,
   isValidQuery,
   preview,
+  readDeselected,
+  sortByModifiedDesc,
   stripTags,
+  writeDeselected,
 } from '../utils';
 
 /**
@@ -81,7 +84,7 @@ export function App() {
   const allTypes = useMemo(() => typesQuery.data ?? [], [typesQuery.data]);
 
   // Par défaut tous les types sont sélectionnés → on ne mémorise que ceux DÉCOCHÉS.
-  const [deselected, setDeselected] = useState<Set<string>>(new Set());
+  const [deselected, setDeselected] = useState<Set<string>>(() => readDeselected(window.sessionStorage));
   const [words, setWords] = useState(queryFromHash);
   const [submitted, setSubmitted] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -93,7 +96,8 @@ export function App() {
   const [partial, setPartial] = useState(false);
   const [searched, setSearched] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [expanded, setExpanded] = useState<Set<number>>(new Set());
+  // Clé = adresse du résultat : l'ordre d'affichage change quand une page s'ajoute (tri par date).
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [recent, setRecent] = useState<string[]>(readRecent);
   // Accès directs (handoff 1d). Les complétions de requête ne sont pas rendues :
   // elles exigent un suggester qu'aucune source ne fournit aujourd'hui.
@@ -241,6 +245,8 @@ export function App() {
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
+    // Une réponse de suggestions encore en route ne doit pas rouvrir la liste par-dessus les résultats.
+    suggestToken.current += 1;
     setSuggestOpen(false);
     void runSearch(true);
   };
@@ -256,11 +262,17 @@ export function App() {
 
   const resetFilters = () => setDeselected(new Set());
 
-  const toggleExpand = (i: number) =>
+  // Le choix de types survit à une actualisation de la page (le temps de la session du navigateur).
+  useEffect(() => writeDeselected(window.sessionStorage, deselected), [deselected]);
+
+  // Du plus récent au plus ancien, comme dans l'ancienne interface.
+  const sortedResults = useMemo(() => sortByModifiedDesc(results), [results]);
+
+  const toggleExpand = (key: string) =>
     setExpanded((prev) => {
       const next = new Set(prev);
-      if (next.has(i)) next.delete(i);
-      else next.add(i);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
       return next;
     });
 
@@ -487,8 +499,8 @@ export function App() {
                 )}
 
                 <ul className="list-unstyled" aria-label={t('searchengine.title')}>
-                  {results.map((res, i) => {
-                    const isOpen = expanded.has(i);
+                  {sortedResults.map((res, i) => {
+                    const isOpen = expanded.has(res.url);
                     const desc = res.description
                       ? isOpen
                         ? preview(res.description) && res.description
@@ -500,7 +512,7 @@ export function App() {
                         <div className="flex-grow-1" style={{ minWidth: 0 }}>
                           <div
                             style={{ cursor: canExpand ? 'pointer' : 'default' }}
-                            onClick={() => canExpand && toggleExpand(i)}
+                            onClick={() => canExpand && toggleExpand(res.url)}
                           >
                             <b>{res.title}</b>{' '}
                             {desc ? (

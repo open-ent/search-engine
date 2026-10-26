@@ -1,3 +1,4 @@
+import type { SearchResult } from './api';
 import { dateLocale } from './locale';
 
 /** Fonctions pures du moteur de recherche (testables sans DOM applicatif). */
@@ -34,4 +35,40 @@ export function isValidQuery(words: string): boolean {
     .trim()
     .split(/\s+/)
     .some((w) => w.length >= MIN_WORD);
+}
+
+/** Clé de session des types décochés (équivalent de `storedSearchFilter` de l'ancienne interface). */
+export const DESELECTED_KEY = 'searchengine.deselected';
+
+/** Types décochés mémorisés pour la session (vide si rien, ou si le stockage est indisponible ou illisible). */
+export function readDeselected(storage?: Pick<Storage, 'getItem'>): Set<string> {
+  try {
+    const raw = storage?.getItem(DESELECTED_KEY);
+    const list: unknown = raw ? JSON.parse(raw) : [];
+    return new Set(Array.isArray(list) ? list.filter((x): x is string => typeof x === 'string') : []);
+  } catch {
+    return new Set();
+  }
+}
+
+/** Mémorise les types décochés pour la session ; sans effet si le stockage est indisponible. */
+export function writeDeselected(storage: Pick<Storage, 'setItem' | 'removeItem'> | undefined, deselected: Set<string>): void {
+  try {
+    if (deselected.size === 0) storage?.removeItem(DESELECTED_KEY);
+    else storage?.setItem(DESELECTED_KEY, JSON.stringify([...deselected]));
+  } catch {
+    // Mode privé ou quota : le choix de filtres n'est qu'une commodité.
+  }
+}
+
+/** Résultats du plus récemment modifié au plus ancien (comme l'ancienne interface) ; sans date, en dernier, ordre conservé. */
+export function sortByModifiedDesc(results: SearchResult[]): SearchResult[] {
+  const time = (r: SearchResult) => {
+    const t = r.modified?.$date ? new Date(r.modified.$date).getTime() : NaN;
+    return Number.isNaN(t) ? null : t;
+  };
+  return results
+    .map((r, i) => ({ r, i, t: time(r) }))
+    .sort((a, b) => (a.t === null && b.t === null ? a.i - b.i : a.t === null ? 1 : b.t === null ? -1 : b.t - a.t || a.i - b.i))
+    .map((x) => x.r);
 }

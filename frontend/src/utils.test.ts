@@ -1,6 +1,17 @@
 import { describe, expect, test } from 'vitest';
 
-import { DESCRIPTION_MAX, formatDate, isValidQuery, preview, stripTags } from './utils';
+import type { SearchResult } from './api';
+import {
+  DESCRIPTION_MAX,
+  DESELECTED_KEY,
+  formatDate,
+  isValidQuery,
+  preview,
+  readDeselected,
+  sortByModifiedDesc,
+  stripTags,
+  writeDeselected,
+} from './utils';
 
 describe('search-engine utils (migration React CCTP 51C)', () => {
   describe('isValidQuery', () => {
@@ -42,6 +53,51 @@ describe('search-engine utils (migration React CCTP 51C)', () => {
     test('chaîne vide si invalide ou absente', () => {
       expect(formatDate(undefined)).toBe('');
       expect(formatDate('pas une date')).toBe('');
+    });
+  });
+  describe('filtres mémorisés pour la session', () => {
+    const memoire = () => {
+      const m = new Map<string, string>();
+      return {
+        getItem: (k: string) => m.get(k) ?? null,
+        setItem: (k: string, v: string) => void m.set(k, v),
+        removeItem: (k: string) => void m.delete(k),
+      };
+    };
+    test('relit ce qui a été écrit', () => {
+      const st = memoire();
+      writeDeselected(st, new Set(['BlogSearchingEvents', 'WikiSearchingEvents']));
+      expect([...readDeselected(st)].sort()).toEqual(['BlogSearchingEvents', 'WikiSearchingEvents']);
+    });
+    test('rien de décoché : la clé est retirée', () => {
+      const st = memoire();
+      writeDeselected(st, new Set(['A']));
+      writeDeselected(st, new Set());
+      expect(st.getItem(DESELECTED_KEY)).toBeNull();
+      expect(readDeselected(st).size).toBe(0);
+    });
+    test('contenu illisible, stockage absent ou en échec : aucun filtre, sans erreur', () => {
+      expect(readDeselected({ getItem: () => '{pas du json' }).size).toBe(0);
+      expect(readDeselected({ getItem: () => '"texte"' }).size).toBe(0);
+      expect(readDeselected(undefined).size).toBe(0);
+      expect(() => writeDeselected({ setItem: () => { throw new Error('quota'); }, removeItem: () => undefined }, new Set(['A']))).not.toThrow();
+    });
+  });
+
+  describe('sortByModifiedDesc', () => {
+    const r = (title: string, date?: string): SearchResult => ({ title, url: `/${title}`, app: 'blog', modified: date ? { $date: date } : undefined });
+    test('du plus récent au plus ancien', () => {
+      const out = sortByModifiedDesc([r('a', '2026-01-01T00:00:00Z'), r('b', '2026-03-01T00:00:00Z'), r('c', '2026-02-01T00:00:00Z')]);
+      expect(out.map((x) => x.title)).toEqual(['b', 'c', 'a']);
+    });
+    test('sans date ou date invalide : en dernier, ordre conservé', () => {
+      const out = sortByModifiedDesc([r('x'), r('a', '2026-01-01T00:00:00Z'), r('y', 'pas une date'), r('b', '2026-02-01T00:00:00Z')]);
+      expect(out.map((x) => x.title)).toEqual(['b', 'a', 'x', 'y']);
+    });
+    test('ne modifie pas le tableau d\'origine', () => {
+      const src = [r('a', '2026-01-01T00:00:00Z'), r('b', '2026-02-01T00:00:00Z')];
+      sortByModifiedDesc(src);
+      expect(src.map((x) => x.title)).toEqual(['a', 'b']);
     });
   });
 });

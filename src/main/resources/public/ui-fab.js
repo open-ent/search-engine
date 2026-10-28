@@ -6,8 +6,8 @@
  * Règles :
  *  - bouton flottant en bas à droite, sans compteur : on peut aller et venir autant qu'on veut ;
  *  - AUCUNE préférence écrite (dérogation d'URL `?ui=` seule) ;
- *  - affiché uniquement si l'usager n'a fait aucun choix dans « Paramètres du compte » (clé `<app>Ui`
- *    sans `ui`) ; dès qu'une préférence y est posée, la page de réglages gouverne et il disparaît ;
+ *  - toujours affiché, même quand l'usager a posé une préférence dans « Paramètres du compte » (clé `<app>Ui`) :
+ *    la dérogation d'URL `?ui=` passe avant la préférence, on peut donc revenir à l'autre interface à tout moment ;
  *  - laisse la place au bandeau d'invitation / de retour d'expérience du module tant qu'il est affiché
  *    (élément dont la classe se termine par `-ui-switch`, ou `[data-ui-banner]`), puis prend le relais.
  * Même logique dans le socle React (Layout/UiSwitchFab).
@@ -21,23 +21,12 @@
     'communities', 'timelinegenerator', 'incidents', 'massmailing', 'statistics-presences'];
   var app = (window.location.pathname.split('/')[1] || '');
   if (APPS.indexOf(app) < 0 || document.getElementById('openent-ui-fab')) return;
-  var key = app.replace(/[^a-zA-Z0-9]/g, '') + 'Ui';
 
   var fr = /^fr/i.test(document.documentElement.lang || navigator.language || 'fr');
   var T = fr
     ? { label: "Version de l'interface", next: 'Nouvelle version', prev: 'Ancienne version', current: 'actuelle' }
     : { label: 'Interface version', next: 'New version', prev: 'Previous version', current: 'current' };
   var BANNERS = '[class*="-ui-switch"], [data-ui-banner]';
-
-  function read() {
-    return fetch('/userbook/preference/' + key, { credentials: 'include' })
-      .then(function (res) { return res.ok ? res.json() : null; })
-      .then(function (body) {
-        if (!body || !body.preference) return {};
-        try { return JSON.parse(body.preference) || {}; } catch (e) { return {}; }
-      })
-      .catch(function () { return {}; });
-  }
 
   // Un bandeau est « affiché » s'il n'est ni masqué ni sans boîte : `offsetParent` vaut null pour TOUT élément
   // en position fixe (c'est le cas des bandeaux), il ne peut donc pas servir de test.
@@ -87,8 +76,7 @@
     return fab;
   }
 
-  read().then(function (preference) {
-    if (preference.ui === 'react' || preference.ui === 'angular') return;
+  Promise.resolve().then(function () {
     var fab = build();
     // N'écrit que si l'état change : réaffecter `hidden` avec la même valeur crée tout de même un enregistrement de
     // mutation, que l'observateur relirait aussitôt — boucle sans fin qui gèle la page.

@@ -10,7 +10,7 @@ on:
       - '*-patched-dev'
     tags: ['*']
   pull_request:
-    branches: [main, master, develop]
+    branches: [main, master, develop, '*-patched-dev', '*-patched']
   workflow_dispatch:
     inputs:
       entcore_version:

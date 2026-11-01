@@ -512,13 +512,13 @@ packages:
     engines: {node: '>= 10'}
 
   '@open-ent/bootstrap@2.5.30-patched':
-    resolution: {integrity: sha512-bRauL1bj9lFzF6lCk9mu1zoeg9JzvrOZqxmqOTOXhoQZ057gpKhn9vX+l2ldQz+BlZgmOHsWGl2wjiIoHYXJ4A==, tarball: https://npm.pkg.github.com/download/@open-ent/bootstrap/2.5.30-patched/a65d2329307f075d367920dac2aa1f93eb30f9db}
+    resolution: {integrity: sha512-GawgICVlI9WhwI2AT+HzZ6/39x/vjLgnGwDvjYsZihk+kJKS65UrX0ispE73E9WGQDoT3baDJLImQTMQbT0LLA==, tarball: https://npm.pkg.github.com/download/@open-ent/bootstrap/2.5.30-patched/9546ad07efc6903290ec27c4f77c2115c65b88f6}
 
   '@open-ent/client@2.5.30-patched':
     resolution: {integrity: sha512-M+63EBTWykwdhL1iPPKD57+Xd1imgz9GTsTb41nv0n6AmbuItggbGUXSj5+uzhf6XpDg+bJ7jnGM9mJrDOCilQ==, tarball: https://npm.pkg.github.com/download/@open-ent/client/2.5.30-patched/4c20377db1b6028283976fa315da3dfc9c0bd763}
 
   '@open-ent/react@2.5.30-patched':
-    resolution: {integrity: sha512-Eohg2TkzJQcwXySMl8bZUuMZsyMAz4IMSl88J3aRvV0qjYEarqIjD4FQjASz6YjZp85L0CglWLCRys2iHlWpeQ==, tarball: https://npm.pkg.github.com/download/@open-ent/react/2.5.30-patched/873dc8454182f21dd379505ccc426cc4995da2ed}
+    resolution: {integrity: sha512-BlewkLvu0qUySXXp0LcM8dszPkmKlXDUt0/BOxTWlfZ1/duLSyV30GaL4XUQLjQH4r1/oJ4s7UojAUPUKVVXqg==, tarball: https://npm.pkg.github.com/download/@open-ent/react/2.5.30-patched/41e6e14bd7890f2f992792d28ffabd47851ead28}
     peerDependencies:
       '@react-spring/web': 9.7.5
       '@tanstack/react-query': 5.62.7
@@ -2328,8 +2328,8 @@ packages:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
 
-  swiper@10.1.0:
-    resolution: {integrity: sha512-E+wh+hcSbwlRfXuwBTclcOOikOjNdSF0a2Sdg3J4cIWtHO64A7SaLRfezfrJ67CW3GEc15AduYU2YKlElsjqsQ==}
+  swiper@12.2.0:
+    resolution: {integrity: sha512-K8uXsBZU6ME97Ia3xbBge8IRCnR1lOmIILzvY/jGVic7dSTQ530s3uO8RvXbPUtkkXLWIwmZLRPbtDxRWVAFdg==}
     engines: {node: '>= 4.7.0'}
 
   symbol-tree@3.2.4:
@@ -3135,7 +3135,7 @@ snapshots:
       react-pdf: 10.3.0(@types/react@18.3.27)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react-popper: 2.3.0(@popperjs/core@2.11.8)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react-slugify: 3.0.3
-      swiper: 10.1.0
+      swiper: 12.2.0
       tesseract.js: 7.0.0
       ua-parser-js: 1.0.36
     transitivePeerDependencies:
@@ -5151,7 +5151,7 @@ snapshots:
 
   supports-preserve-symlinks-flag@1.0.0: {}
 
-  swiper@10.1.0: {}
+  swiper@12.2.0: {}
 
   symbol-tree@3.2.4: {}
 

@@ -23,9 +23,11 @@ esac
 # Interface React (frontend/, Vite) : construite sur l'hôte puis rangée dans les ressources du module, pour que
 # `./build.sh install` produise à lui seul le jar complet (AngularJS + React) — aucune copie à la main.
 # Ancien bundle supprimé d'abord et échec franc : jamais un vieux bundle embarqué en silence.
-# Prérequis : Node >= 18 (corepack) et NODE_AUTH_TOKEN (paquets @open-ent privés).
+# Prérequis : Node (26 LTS conseillé), pnpm et NODE_AUTH_TOKEN (paquets @open-ent privés).
+# Node >= 25 n'embarque plus corepack : on prend le pnpm du PATH, sinon celui de corepack.
 buildReact () {
-  local fe dir
+  local fe dir pnpm="pnpm"
+  command -v pnpm >/dev/null 2>&1 || pnpm="corepack pnpm"
   for fe in frontend; do
     [ -f "$fe/package.json" ] || continue
     dir=$(dirname "$fe")
@@ -33,8 +35,8 @@ buildReact () {
     (
       cd "$fe" || exit 1
       rm -rf dist
-      corepack pnpm install --frozen-lockfile || exit 1
-      corepack pnpm build || exit 1
+      $pnpm install --frozen-lockfile || exit 1
+      $pnpm build || exit 1
       ls dist/public/*.js >/dev/null 2>&1 || { echo "[buildReact] aucun bundle dans dist/public : build React invalide"; exit 1; }
     ) || { echo "[buildReact] ÉCHEC ($fe)"; exit 1; }
     mkdir -p "$dir/src/main/resources/public"

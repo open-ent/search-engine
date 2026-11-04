@@ -39,7 +39,7 @@ jobs:
 
       - uses: actions/setup-java@v6
         with:
-          java-version: '21'
+          java-version: '25'
           distribution: temurin
           cache: maven
 
@@ -98,15 +98,25 @@ jobs:
           # La propriété du pom est `entcore.version` (et non `entCoreVersion`).
           if [ -n "$ENTCORE_VERSION" ]; then ENTCORE_OPT="-Dentcore.version=$ENTCORE_VERSION"; fi
           # -Dmaven.test.skip=true (pas -DskipTests) : évite la compilation des tests, qui crashe
-          # sous JDK 21 via maven-scala-plugin:2.15.2 hérité d'app-parent (testCompile scala).
+          # sous les JDK récents via maven-scala-plugin:2.15.2 hérité d'app-parent (testCompile scala).
           mvn clean package -Dmaven.test.skip=true -B -DbuildNumber=${GITHUB_SHA::8} -DscmBranch=${GITHUB_REF_NAME} $ENTCORE_OPT
         env:
           ENTCORE_VERSION: ${{ github.event.inputs.entcore_version }}
 
+      # Depuis le JDK 23, javac n'exécute plus les processeurs d'annotations trouvés sur le
+      # classpath : sans `-proc:full` (pom), le jar part sans securedaction/ ni routes/, et
+      # chaque route sécurisée répond 404 — sans aucune erreur de build.
+      - name: Verify annotation metadata
+        run: |
+          FAT_JAR=$(ls target/*-fat.jar | head -1)
+          for d in securedaction routes; do
+            unzip -Z1 "$FAT_JAR" | grep -q "^$d/" || { echo "::error::$d/ absent de $FAT_JAR"; exit 1; }
+          done
+
       - name: Run tests
         if: github.event_name == 'pull_request'
         # profil `scala` d'app-parent désactivé : maven-scala-plugin 2.15.2 ne lit pas le
-        # bytecode du JDK 21, et aucun module applicatif n'a de source Scala.
+        # bytecode des JDK récents, et aucun module applicatif n'a de source Scala.
         run: mvn test -B -P '!scala'
 
       - name: Configure Maven for GitHub Packages

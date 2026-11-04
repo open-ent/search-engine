@@ -658,10 +658,10 @@ packages:
     resolution: {integrity: sha512-GawgICVlI9WhwI2AT+HzZ6/39x/vjLgnGwDvjYsZihk+kJKS65UrX0ispE73E9WGQDoT3baDJLImQTMQbT0LLA==, tarball: https://npm.pkg.github.com/download/@open-ent/bootstrap/2.5.30-patched/9546ad07efc6903290ec27c4f77c2115c65b88f6}
 
   '@open-ent/client@2.5.30-patched':
-    resolution: {integrity: sha512-M+63EBTWykwdhL1iPPKD57+Xd1imgz9GTsTb41nv0n6AmbuItggbGUXSj5+uzhf6XpDg+bJ7jnGM9mJrDOCilQ==, tarball: https://npm.pkg.github.com/download/@open-ent/client/2.5.30-patched/4c20377db1b6028283976fa315da3dfc9c0bd763}
+    resolution: {integrity: sha512-IO/1L0aaqhsj1ry+ZL/WzupM5zzxHWtwWaaYCoG7QHS/smMifp5wwELofwMLO1AxjVhokruENPBJCOEeWxl70A==, tarball: https://npm.pkg.github.com/download/@open-ent/client/2.5.30-patched/bb7c142422009089b470b896296dedf6e14979a2}
 
   '@open-ent/react@2.5.30-patched':
-    resolution: {integrity: sha512-BlewkLvu0qUySXXp0LcM8dszPkmKlXDUt0/BOxTWlfZ1/duLSyV30GaL4XUQLjQH4r1/oJ4s7UojAUPUKVVXqg==, tarball: https://npm.pkg.github.com/download/@open-ent/react/2.5.30-patched/41e6e14bd7890f2f992792d28ffabd47851ead28}
+    resolution: {integrity: sha512-nJiiA+HjOI2qeJmJcLFQIxnuj8QdsNdbYPKfaZK+ZIqQ3ILoRzAh9VVkUQagWP0kQj9J3rGanE+pqHaLvrFlQQ==, tarball: https://npm.pkg.github.com/download/@open-ent/react/2.5.30-patched/b7fa5fd28b027467ebb850c1ab55082d87c3bba5}
     peerDependencies:
       '@react-spring/web': 9.7.5
       '@tanstack/react-query': 5.62.7

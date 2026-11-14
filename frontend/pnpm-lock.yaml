@@ -5,11 +5,11 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  i18next: 23.8.1
+  i18next: 23.16.8
   axios@>=1.0.0 <1.21.1: ^1.21.1
   follow-redirects@>=1.0.0 <1.16.3: ^1.16.3
   form-data@>=4.0.0 <4.0.6: ^4.0.6
-  '@xmldom/xmldom@>=0.8.0 <0.8.15': ^0.8.15
+  '@xmldom/xmldom@>=0.8.0 <0.8.15': ^0.9.0
   markdown-it@>=14.0.0 <14.3.3: ^14.3.3
   linkify-it@>=5.0.0 <5.0.2: ^5.0.2
   prosemirror-model@>=1.0.0 <1.25.12: ^1.25.12
@@ -27,13 +27,13 @@ importers:
         version: 2.5.30-patched
       '@open-ent/react':
         specifier: 2.5.30-patched
-        version: 2.5.30-patched(@react-spring/web@9.7.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@tanstack/react-query@5.62.7(react@18.3.1))(@tiptap/core@2.11.0(@tiptap/pm@2.11.0))(@tiptap/pm@2.11.0)(@tiptap/react@2.11.0(@tiptap/core@2.11.0(@tiptap/pm@2.11.0))(@tiptap/pm@2.11.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.27)(react-dom@18.3.1(react@18.3.1))(react-hook-form@7.71.1(react@18.3.1))(react-i18next@14.1.3(i18next@23.8.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
+        version: 2.5.30-patched(@react-spring/web@9.7.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@tanstack/react-query@5.107.1(@types/react@18.3.27)(react@18.3.1))(@tiptap/core@2.11.0(@tiptap/pm@2.11.0))(@tiptap/pm@2.11.0)(@tiptap/react@2.11.0(@tiptap/core@2.11.0(@tiptap/pm@2.11.0))(@tiptap/pm@2.11.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.27)(react-dom@18.3.1(react@18.3.1))(react-hook-form@7.71.1(react@18.3.1))(react-i18next@14.1.3(i18next@23.16.8)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       '@tanstack/react-query':
-        specifier: 5.62.7
-        version: 5.62.7(react@18.3.1)
+        specifier: 5.107.1
+        version: 5.107.1(@types/react@18.3.27)(react@18.3.1)
       i18next:
-        specifier: 23.8.1
-        version: 23.8.1
+        specifier: 23.16.8
+        version: 23.16.8
       i18next-http-backend:
         specifier: 2.4.2
         version: 2.4.2
@@ -45,7 +45,7 @@ importers:
         version: 18.3.1(react@18.3.1)
       react-i18next:
         specifier: 14.1.3
-        version: 14.1.3(i18next@23.8.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        version: 14.1.3(i18next@23.16.8)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
     devDependencies:
       '@types/react':
         specifier: 18.3.27
@@ -669,7 +669,7 @@ packages:
     resolution: {integrity: sha512-IO/1L0aaqhsj1ry+ZL/WzupM5zzxHWtwWaaYCoG7QHS/smMifp5wwELofwMLO1AxjVhokruENPBJCOEeWxl70A==, tarball: https://npm.pkg.github.com/download/@open-ent/client/2.5.30-patched/bb7c142422009089b470b896296dedf6e14979a2}
 
   '@open-ent/react@2.5.30-patched':
-    resolution: {integrity: sha512-LJ2keReDmKpMAMaJ97xlqJnj6GeNt1bsgt/k4iZUtMmEwKWklqA5Ep863JuPJSrBp1UmGscxednFF4pw09s67Q==, tarball: https://npm.pkg.github.com/download/@open-ent/react/2.5.30-patched/60bbeeb3e6481d65d226eb3f834c3b55d81de64a}
+    resolution: {integrity: sha512-EdprBrLHSlaOIUXvuro+CZTBEIk40licdDwEyc7q3pIDezh/9H6U7XPdhXiSMtY9Ho+4hf2eMLc64FJvxFmtxA==, tarball: https://npm.pkg.github.com/download/@open-ent/react/2.5.30-patched/9cc4118b1c6a8f259ef0e912c770ab854499d6e8}
     peerDependencies:
       '@react-spring/web': 9.7.5
       '@tanstack/react-query': 5.62.7
@@ -939,13 +939,17 @@ packages:
     peerDependencies:
       react: ^16.14.0 || 17.x || 18.x || 19.x
 
-  '@tanstack/query-core@5.62.7':
-    resolution: {integrity: sha512-fgpfmwatsrUal6V+8EC2cxZIQVl9xvL7qYa03gsdsCy985UTUlS4N+/3hCzwR0PclYDqisca2AqR1BVgJGpUDA==}
+  '@tanstack/query-core@5.107.1':
+    resolution: {integrity: sha512-PSyAik11oQBEVOiVy5hjZWHmoUqOXqK1WYy4v55mcxozEfKaQgpUMsgnXhWjuESzSht8JfzqMS1m6M/9CpNgvg==}
 
-  '@tanstack/react-query@5.62.7':
-    resolution: {integrity: sha512-+xCtP4UAFDTlRTYyEjLx0sRtWyr5GIk7TZjZwBu4YaNahi3Rt2oMyRqfpfVrtwsqY2sayP4iXVCwmC+ZqqFmuw==}
+  '@tanstack/react-query@5.107.1':
+    resolution: {integrity: sha512-udCOOLp3ZAheUrIHLCe+ZZge6nr2ZUrGMSWcCuXsjY1Bf2JeeE09oxst97PILiCY6N8xo/7bIo3Hvz13zh06FA==}
     peerDependencies:
+      '@types/react': ^18 || ^19
       react: ^18 || ^19
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
 
   '@tiptap/core@2.11.0':
     resolution: {integrity: sha512-0S3AWx6E2QqwdQqb6z0/q6zq2u9lA9oL3BLyAaITGSC9zt8OwjloS2k1zN6wLa9hp2rO0c0vDnWsTPeFaEaMdw==}
@@ -1292,9 +1296,9 @@ packages:
   '@webgpu/types@0.1.71':
     resolution: {integrity: sha512-mMy8/ODcKhab808co15eW+yN+HgXoQxRQHTiBV9Mrvl1r0ufnid7YOcI+gi4eUWSWl9ezD6TW2KXccrL8HCh2A==}
 
-  '@xmldom/xmldom@0.8.15':
-    resolution: {integrity: sha512-/5NV/vDALVFDXgLmfsy9TRCBlKwO2LNBFzpzvb9iIj+jR+eSc6DLYYvVOdivT/jm7MtU6TebYuRmzEOI7w40UA==}
-    engines: {node: '>=10.0.0'}
+  '@xmldom/xmldom@0.9.12':
+    resolution: {integrity: sha512-5AXjrcMClTryPe9LgZrygpB1lj7s0S9E0+W+AHaVKAVyHanafK86iPSvG5xHVSp/jC+VH1UXu0TAEmY279xH7A==}
+    engines: {node: '>=14.6'}
 
   agent-base@6.0.2:
     resolution: {integrity: sha512-RZNwNclF7+MS/8bDg70amg32dyeZGZxiDuQmZxKLAlQjr3jGyLx+4Kkk58UO7D2QdgFIQCovuSuZESne6RG6XQ==}
@@ -1637,8 +1641,8 @@ packages:
   i18next-http-backend@2.4.2:
     resolution: {integrity: sha512-wKrgGcaFQ4EPjfzBTjzMU0rbFTYpa0S5gv9N/d8WBmWS64+IgJb7cHddMvV+tUkse7vUfco3eVs2lB+nJhPo3w==}
 
-  i18next@23.8.1:
-    resolution: {integrity: sha512-Yhe6oiJhigSh64ev7nVVywu7vHjuUG41MRmFKNwphbkadqTL1ozZFBQISflY7/ju+gL6I/SPfI1GgWQh1yYArA==}
+  i18next@23.16.8:
+    resolution: {integrity: sha512-06r/TitrM88Mg5FdUXAKL96dJMzgqLE5dv3ryBAra4KCwD9mJ4ndOTS95ZuymIGoE+2hzfdaMak2X11/es7ZWg==}
 
   iconv-lite@0.6.3:
     resolution: {integrity: sha512-4fCk79wshMdzMp2rH06qWrJE4iolqLhCUH+OiuIgU++RB0+94NlDL81atO7GX55uUKueo0txHNtvEyI6D7WdMw==}
@@ -2139,7 +2143,7 @@ packages:
   react-i18next@14.1.3:
     resolution: {integrity: sha512-wZnpfunU6UIAiJ+bxwOiTmBOAaB14ha97MjOEnLGac2RJ+h/maIYXZuTHlmyqQVX1UVHmU1YDTQ5vxLmwfXTjw==}
     peerDependencies:
-      i18next: 23.8.1
+      i18next: 23.16.8
       react: '>= 16.8.0'
       react-dom: '*'
       react-native: '*'
@@ -3021,7 +3025,7 @@ snapshots:
       - debug
       - supports-color
 
-  '@open-ent/react@2.5.30-patched(@react-spring/web@9.7.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@tanstack/react-query@5.62.7(react@18.3.1))(@tiptap/core@2.11.0(@tiptap/pm@2.11.0))(@tiptap/pm@2.11.0)(@tiptap/react@2.11.0(@tiptap/core@2.11.0(@tiptap/pm@2.11.0))(@tiptap/pm@2.11.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.27)(react-dom@18.3.1(react@18.3.1))(react-hook-form@7.71.1(react@18.3.1))(react-i18next@14.1.3(i18next@23.8.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)':
+  '@open-ent/react@2.5.30-patched(@react-spring/web@9.7.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@tanstack/react-query@5.107.1(@types/react@18.3.27)(react@18.3.1))(@tiptap/core@2.11.0(@tiptap/pm@2.11.0))(@tiptap/pm@2.11.0)(@tiptap/react@2.11.0(@tiptap/core@2.11.0(@tiptap/pm@2.11.0))(@tiptap/pm@2.11.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.27)(react-dom@18.3.1(react@18.3.1))(react-hook-form@7.71.1(react@18.3.1))(react-i18next@14.1.3(i18next@23.16.8)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@ant-design/icons': 5.4.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@dnd-kit/core': 6.3.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -3034,7 +3038,7 @@ snapshots:
       '@popperjs/core': 2.11.8
       '@react-spring/web': 9.7.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@sentry/react': 8.55.2(react@18.3.1)
-      '@tanstack/react-query': 5.62.7(react@18.3.1)
+      '@tanstack/react-query': 5.107.1(@types/react@18.3.27)(react@18.3.1)
       '@tiptap/core': 2.11.0(@tiptap/pm@2.11.0)
       '@tiptap/extension-blockquote': 2.11.0(@tiptap/core@2.11.0(@tiptap/pm@2.11.0))
       '@tiptap/extension-bullet-list': 2.11.0(@tiptap/core@2.11.0(@tiptap/pm@2.11.0))
@@ -3088,7 +3092,7 @@ snapshots:
       react-dom: 18.3.1(react@18.3.1)
       react-hook-form: 7.71.1(react@18.3.1)
       react-hot-toast: 2.6.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      react-i18next: 14.1.3(i18next@23.8.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react-i18next: 14.1.3(i18next@23.16.8)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react-intersection-observer: 9.5.3(react@18.3.1)
       react-pdf: 10.3.0(@types/react@18.3.27)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react-popper: 2.3.0(@popperjs/core@2.11.8)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -3353,12 +3357,14 @@ snapshots:
       hoist-non-react-statics: 3.3.2
       react: 18.3.1
 
-  '@tanstack/query-core@5.62.7': {}
+  '@tanstack/query-core@5.107.1': {}
 
-  '@tanstack/react-query@5.62.7(react@18.3.1)':
+  '@tanstack/react-query@5.107.1(@types/react@18.3.27)(react@18.3.1)':
     dependencies:
-      '@tanstack/query-core': 5.62.7
+      '@tanstack/query-core': 5.107.1
       react: 18.3.1
+    optionalDependencies:
+      '@types/react': 18.3.27
 
   '@tiptap/core@2.11.0(@tiptap/pm@2.11.0)':
     dependencies:
@@ -3726,7 +3732,7 @@ snapshots:
 
   '@webgpu/types@0.1.71': {}
 
-  '@xmldom/xmldom@0.8.15': {}
+  '@xmldom/xmldom@0.9.12': {}
 
   agent-base@6.0.2:
     dependencies:
@@ -4150,7 +4156,7 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
-  i18next@23.8.1:
+  i18next@23.16.8:
     dependencies:
       '@babel/runtime': 7.29.7
 
@@ -4307,7 +4313,7 @@ snapshots:
       '@types/css-font-loading-module': 0.0.12
       '@types/earcut': 3.0.0
       '@webgpu/types': 0.1.71
-      '@xmldom/xmldom': 0.8.15
+      '@xmldom/xmldom': 0.9.12
       earcut: 3.2.3
       eventemitter3: 5.0.4
       gifuct-js: 2.1.2
@@ -4768,11 +4774,11 @@ snapshots:
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
 
-  react-i18next@14.1.3(i18next@23.8.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+  react-i18next@14.1.3(i18next@23.16.8)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
       '@babel/runtime': 7.29.7
       html-parse-stringify: 3.0.1
-      i18next: 23.8.1
+      i18next: 23.16.8
       react: 18.3.1
     optionalDependencies:
       react-dom: 18.3.1(react@18.3.1)
